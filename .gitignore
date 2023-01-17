@@ -1,0 +1,10 @@
+node_modules
+# Keep environment variables out of version control
+.env
+notes.md
+prisma/migrations
+yarn.lock
+package-lock.json
+.idea
+ftp/*
+telegram/session.txt

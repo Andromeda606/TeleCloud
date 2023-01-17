@@ -1,0 +1,24 @@
+{
+  "name": "telecloud",
+  "version": "1.0.0",
+  "dependencies": {
+    "@prisma/client": "4.8.0",
+    "dotenv": "^16.0.3",
+    "ftp-srv": "Andromeda606/ftp-srv",
+    "input": "^1.0.1",
+    "jsftp": "^2.1.3",
+    "simple-ftpd": "^0.0.4",
+    "telegram": "^2.15.5"
+  },
+  "scripts": {
+    "start:dev": "npx tsx app.ts",
+    "start:server": "npx tsx server.ts",
+    "start:test": "npx tsx telegram/test.ts",
+    "setup": "npx tsx setup/setup.ts",
+    "setup:test": "npx tsx setup/helper.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "prisma": "^4.8.1"
+  }
+}
