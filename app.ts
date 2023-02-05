@@ -2,13 +2,9 @@ import {getClient} from "./telegram/telegram.api";
 import * as dotenv from 'dotenv';
 
 dotenv.config();
-import {FtpSrv, FileSystem} from "ftp-srv";
-import {Stat} from "./types/file-system";
-import {createReadStream, createWriteStream, writeFileSync} from "fs";
-import {sleep} from "telegram/Helpers";
-import {createFile, getFile} from "./database/file-manager";
-import {DatabaseFileSystem} from "./database/file-system";
-
+import {FtpSrv} from "ftp-srv";
+import {DatabaseFileSystem} from "./file-structure/file-system";
+import {networkInterfaces} from "os";
 
 let client;
 
@@ -16,6 +12,19 @@ getClient().then(clientPromise => {
     client = clientPromise;
     console.log("TeleDrive Started!");
 });
+
+const nets = networkInterfaces();
+const results = [];
+
+for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+        const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4
+        if (net.family === familyV4Value && !net.internal) {
+            results.push(net.address);
+        }
+    }
+}
+process.env.FTP_HOST = results[0];
 
 const ftpServer = new FtpSrv({
     url: `ftp://${process.env.FTP_HOST}:${process.env.FTP_PORT}`,

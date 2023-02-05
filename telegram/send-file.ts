@@ -1,16 +1,8 @@
 import bigInt = require("big-integer");
-import {Api, client, errors, TelegramClient} from "telegram";
-import {UploadFileParams} from "telegram/client/uploads";
+import {Api, errors} from "telegram";
 import {generateRandomBytes, readBigIntFromBuffer, sleep} from "telegram/Helpers";
-import {getAppropriatedPartSize} from "telegram/Utils";
-import {MTProtoSender} from "telegram/network";
 
-const KB_TO_BYTES = 1024;
-const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024;
-const UPLOAD_TIMEOUT = 15 * 1000;
 const DISCONNECT_SLEEP = 1000;
-const BUFFER_SIZE_2GB = 2 ** 31;
-
 
 export class SendFile {
     fileId: bigInt.BigInteger;

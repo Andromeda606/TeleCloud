@@ -1,14 +1,15 @@
 import {FileSystem} from "ftp-srv";
-import {createFile, deleteFile, getFile, listDir, renameFile} from "./file-manager";
+import {createFile, deleteFile, getFile, listDir, renameFile} from "../database/file-manager";
 import {createReadStream, createWriteStream, existsSync, readFileSync, statSync, writeFileSync} from "fs";
 import {getClient} from "../telegram/telegram.api";
 import {Directory} from "../types/file-system";
 import {SendFile} from "../telegram/send-file";
-import {Api} from "telegram";
-import bigInt = require("big-integer");
+import {encrypt} from "./file-encryption";
+import {FileDecrypt} from "./file-decrypt";
 
 const teledrivePath = "ftp/"
-
+const UNIX_SEP_REGEX = /\//g;
+const WIN_SEP_REGEX = /\\/g;
 
 function randomStr(length) {
     return Buffer.from(Math.random().toString()).toString("base64").substring(10, 10 + length);
@@ -25,13 +26,25 @@ export class DatabaseFileSystem extends FileSystem {
         return Promise.resolve(createReadStream(emptyFilePath));
     }
 
-    async getCode(fileName: string) {
-        fileName = this.resolvePath(fileName);
-        console.log("filenamme",fileName);
-        console.log("path",this.getPath());
-        const file = await getFile(this.getPath(), fileName);
+    async getCode(filePath: string) {
+        let splittedPath;
+        splittedPath = filePath.split(UNIX_SEP_REGEX);
+        if (process.platform === "win32") {
+            splittedPath = filePath.split(WIN_SEP_REGEX);
+        }
 
-        if (file === null || file ===  "") {
+        const fileName = splittedPath.at(-1);
+        splittedPath.pop();
+        let realFilePath;
+        if (process.platform === "win32") {
+            realFilePath = splittedPath.join("\\") + "\\";
+        }else{
+            realFilePath = splittedPath.join("/") + "/";
+        }
+        console.log("realFilePath",realFilePath,"fileName", fileName);
+        const file = await getFile(realFilePath, fileName);
+
+        if (file === null || file === "") {
             return "";
         }
         return this.readTelegram(Number(file));
@@ -127,7 +140,7 @@ export class DatabaseFileSystem extends FileSystem {
         if (size !== 0) {
             const client = await getClient();
             message = await client.sendFile("me", {
-                file: readFileSync(filePath),
+                file: new Buffer(encrypt(readFileSync(filePath))),
             });
         } else {
             message = {
@@ -194,12 +207,13 @@ export class DatabaseFileSystem extends FileSystem {
             ids: Number(id)
         });
         if (message.length === 0 || message.length === undefined || !message[0].media) {
-            return "";
+            return [""];
         }
-        return client.iterDownload({
+        //return [new Buffer(decrypt((await client.downloadMedia(message[0].media)).toString()).toString())]
+        return new FileDecrypt().iter(client.iterDownload({
             file: message[0].media,
             requestSize: 512 * 1024
-        });
+        }));
     }
 }
 
