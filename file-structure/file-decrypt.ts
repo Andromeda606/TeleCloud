@@ -14,7 +14,6 @@ export class FileDecrypt {
 
     async* iter(iter) {
         for await (const chunk of iter) {
-            console.log("chunk telegram", chunk.length);
             yield this.add(chunk.toString());
         }
         yield this.end();
@@ -22,7 +21,7 @@ export class FileDecrypt {
 
     add(data: string) {
         // @ts-ignore
-        return this.decipher.update(Buffer.from(data, ENCRYPTION)); //.toString("binary");
+        return this.decipher.update(Buffer.from(data, ENCRYPTION));
     }
 
     end(): Buffer {
